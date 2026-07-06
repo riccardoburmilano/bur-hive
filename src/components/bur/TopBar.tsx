@@ -1,7 +1,28 @@
-import { Link } from "react-router-dom";
+import { useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { BeeLogo } from "./BeeLogo";
 
 export function TopBar() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    const q = inputRef.current?.value.trim();
+    if (!q) return;
+    // Se è il nome di un modulo → naviga dentro l'hive
+    const moduleMatch = [
+      'hub','revenue-engine','wallet','ledger','market',
+      'treasury','signals','payouts','identity','vault','rules','settings'
+    ].find(s => s.includes(q.toLowerCase()) || q.toLowerCase().includes(s));
+    if (moduleMatch) {
+      navigate(`/module/${moduleMatch}`);
+      return;
+    }
+    // Altrimenti → Google (estensione intercetta e mostra box BUR)
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[var(--bur-line)] bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-6 px-6">
@@ -22,8 +43,10 @@ export function TopBar() {
               <path d="m20 20-3.5-3.5" />
             </svg>
             <input
+              ref={inputRef}
               type="text"
               placeholder="Search the hive…"
+              onKeyDown={handleSearch}
               className="w-full bg-transparent outline-none placeholder:text-muted-foreground"
             />
           </div>
@@ -52,7 +75,7 @@ function IconBtn({ children, href, label }: { children: React.ReactNode; href: s
     <Link
       to={href}
       aria-label={label}
-      className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--bur-gold-soft)]/40 hover:text-foreground"
+      className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-secondary hover:text-foreground"
     >
       {children}
     </Link>
